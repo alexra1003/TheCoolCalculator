@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoolCalculator | Ultra Neon Edition</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Press+Start+2P&display=swap');
+
+        :root {
+            --neon-blue: #00f3ff;
+            --neon-pink: #ff00ff;
+            --neon-green: #39ff14;
+            --neon-red: #ff3131;
+            --bg: #050505;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                              linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            background-size: 100% 2px, 3px 100%;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        .calc-box {
+            width: 420px;
+            background: rgba(10, 10, 10, 0.95);
+            border: 2px solid var(--neon-blue);
+            box-shadow: 0 0 20px var(--neon-blue);
+            border-radius: 15px;
+            padding: 25px;
+            display: none;
+        }
+
+        .screen {
+            background: #000;
+            border: 2px solid var(--neon-green);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            min-height: 80px;
+            text-align: right;
+            box-shadow: inset 0 0 10px rgba(57, 255, 20, 0.2);
+        }
+
+        #label { color: var(--neon-pink); font-family: 'Press Start 2P'; font-size: 9px; float: left; margin-bottom: 10px; }
+        #output { font-size: 28px; color: var(--neon-green); text-shadow: 0 0 8px var(--neon-green); clear: both; margin-top: 15px;}
+
+        .btn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        
+        button {
+            background: transparent;
+            border: 1px solid var(--neon-blue);
+            color: var(--neon-blue);
+            padding: 12px;
+            font-family: 'Orbitron';
+            font-size: 11px;
+            cursor: pointer;
+            transition: 0.1s;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background: var(--neon-blue);
+            color: black;
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+
+        .input-group {
+            background: #151515;
+            padding: 15px;
+            border: 1px solid var(--neon-pink);
+            margin-bottom: 15px;
+            display: none;
+            text-align: center;
+        }
+
+        input {
+            width: 80%;
+            background: #000;
+            border: 1px solid var(--neon-blue);
+            color: white;
+            padding: 8px;
+            margin: 4px 0;
+            font-family: 'Orbitron';
+            text-align: center;
+        }
+
+        .action-btn { border-color: var(--neon-green); color: var(--neon-green); width: 100%; margin-top: 8px; }
+        .action-btn:hover { background: var(--neon-green); color: black; }
+
+    </style>
+</head>
+<body>
+
+    <div id="overlay" onclick="startApp()">
+        <h1 style="font-family: 'Press Start 2P'; color: var(--neon-yellow); animation: blink 1s infinite;">START SYSTEM</h1>
+    </div>
+
+    <div class="calc-box" id="app">
+        <div style="font-family: 'Press Start 2P'; font-size: 10px; color: var(--neon-blue); margin-bottom: 15px;">COOL_CALC_OS v3.0</div>
+        
+        <div class="screen">
+            <span id="label">SYSTEM READY</span>
+            <div id="output">0</div>
+        </div>
+
+        <div id="inputs" class="input-group"></div>
+
+        <div class="btn-grid">
+            <button onclick="setOp('ADDITION')">Addition</button>
+            <button onclick="setOp('SUBTRACTION')">Subtraction</button>
+            <button onclick="setOp('MULTIPLICATION')">Multiplication</button>
+            <button onclick="setOp('DIVISION')">Division</button>
+            <button onclick="setOp('EXPONENT')">Exponent</button>
+            <button onclick="setOp('SINE')">Sine</button>
+            <button onclick="setOp('COSINE')">Cosine</button>
+            <button onclick="clearAll()" style="border-color: var(--neon-red); color: var(--neon-red);">Clear</button>
+        </div>
+    </div>
+
+    <audio id="music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="coin"><source src="https://www.myinstants.com/media/sounds/mario-coin.mp3"></audio>
+
+    <script>
+        const music = document.getElementById('music');
+        const coin = document.getElementById('coin');
+        const output = document.getElementById('output');
+        const label = document.getElementById('label');
+        const inputDiv = document.getElementById('inputs');
+
+        function startApp() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('app').style.display = 'block';
+            music.volume = 0.2;
+            music.play();
+        }
+
+        function setOp(mode) {
+            label.innerText = mode;
+            inputDiv.style.display = 'block';
+            inputDiv.innerHTML = '';
+
+            if (['ADDITION', 'SUBTRACTION', 'MULTIPLICATION'].includes(mode)) {
+                if(mode === 'SUBTRACTION') inputDiv.innerHTML += `<input type="number" id="init" placeholder="INITIAL AMOUNT">`;
+                inputDiv.innerHTML += `
+                    <input type="number" id="qty" placeholder="HOW MANY NUMBERS?">
+                    <button class="action-btn" onclick="genInputs('${mode}')">GENERATE</button>`;
+            } else if(mode === 'EXPONENT') {
+                inputDiv.innerHTML = `<input type="number" id="b" placeholder="BASE"><input type="number" id="e" placeholder="EXPONENT">
+                                      <button class="action-btn" onclick="calcExp()">CALCULATE</button>`;
+            } else if(mode === 'DIVISION') {
+                inputDiv.innerHTML = `<input type="number" id="n1" placeholder="DIVIDEND"><input type="number" id="n2" placeholder="DIVISOR">
+                                      <button class="action-btn" onclick="calcDiv()">CALCULATE</button>`;
+            } else if(mode === 'SINE' || mode === 'COSINE') {
+                inputDiv.innerHTML = `<input type="number" id="deg" placeholder="DEGREES">
+                                      <button class="action-btn" onclick="calcTrig('${mode}')">CALCULATE</button>`;
+            }
+        }
+
+        function genInputs(mode) {
+            const qty = parseInt(document.getElementById('qty').value);
+            const init = document.getElementById('init')?.value || 0;
+            if(!qty || qty <= 0) return;
+            inputDiv.innerHTML = '';
+            for(let i=0; i<qty; i++) inputDiv.innerHTML += `<input type="number" class="vals" placeholder="Value ${i+1}">`;
+            inputDiv.innerHTML += `<button class="action-btn" onclick="finish('${mode}', ${init})">RESULT</button>`;
+        }
+
+        function finish(mode, init) {
+            const nums = Array.from(document.querySelectorAll('.vals')).map(i => parseFloat(i.value) || 0);
+            let res = 0;
+            if(mode === 'ADDITION') res = nums.reduce((a, b) => a + b, 0);
+            if(mode === 'MULTIPLICATION') res = nums.reduce((a, b) => a * b, 1);
+            if(mode === 'SUBTRACTION') res = nums.reduce((a, b) => a - b, parseFloat(init));
+            showRes(res);
+        }
+
+        function calcExp() { showRes(Math.pow(document.getElementById('b').value, document.getElementById('e').value)); }
+        function calcDiv() { 
+            const n2 = document.getElementById('n2').value;
+            if(n2 == 0) alert("NO ZERO"); else showRes(document.getElementById('n1').value / n2);
+        }
+        function calcTrig(m) {
+            const r = (document.getElementById('deg').value * Math.PI) / 180;
+            showRes((m === 'SINE' ? Math.sin(r) : Math.cos(r)).toFixed(4));
+        }
+
+        function showRes(v) {
+            coin.play();
+            output.innerText = v;
+            inputDiv.style.display = 'none';
+        }
+
+        function clearAll() {
+            output.innerText = '0';
+            label.innerText = 'READY';
+            inputDiv.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
